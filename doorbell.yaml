@@ -1,0 +1,24 @@
+shell_command:
+  take_frontdoor_picture: 'wget http://username:password@frontdoorcamera/Streaming/channels/1/picture -O /home/hass/tmp/frontdoor.jpg'
+  resize_frontdoor_picture: 'convert -crop 628x732+1420 /home/hass/tmp/frontdoor.jpg /home/hass/tmp/frontdoor.jpg'
+
+automation:
+	-  alias: Doorbell
+	   trigger:
+		 platform: state
+		 entity_id: binary_sensor.front_doorbell_sensor
+		 to: off
+	   action:
+		 service: homeassistant.turn_on
+		 entity_id: script.doorbell
+
+		 
+script:
+	alias: "Doorbell Button"
+	sequence:
+	  - service: shell_command.take_frontdoor_picture
+	  - service: shell_command.resize_frontdoor_picture
+	  - service: telegram_bot.send_photo
+		data_template:
+		  file: /home/hass/tmp/frontdoor.jpg
+		  caption: "There is someone at the front door!"

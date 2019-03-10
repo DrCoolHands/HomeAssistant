@@ -1,0 +1,30 @@
+telegram_bot:
+  platform: webhooks
+  api_key: !secret telegram_api_key
+  allowed_chat_ids:
+    - !secret telegram_chat_id
+
+notify:
+  - name: Telegram
+    platform: telegram
+    chat_id: !secret telegram_chat_id
+	
+binary_sensor:
+  - platform: template
+    sensors:
+       house_unprotected:
+         value_template: '{{ is_state("group.all_devices", "not_home") and is_state("alarm_control_panel.home_alarm", "disarmed") }}'
+         friendly_name: 'House is unprotected'
+
+alert:
+  -	 alarm_alert:
+	   name: Alarm is disarmed and no one is home
+	   entity_id: binary_sensor.house_unprotected
+	   repeat:
+		 - 30
+		 - 60
+		 - 120
+	   skip_first: True
+	   notifiers: Telegram
+
+  
